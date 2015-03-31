@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat with socket.io</title>
+	<style>
+		#chat{
+			height:500px;
+		}
+		#contentWrap{
+			
+		}
+		#chatWrap{
+			float: left;
+			border: 1px #000 solid;
+		}
+		#username-area{
+			border: 2px solid black;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="username-area">
+		<p>Enter a username: </p>
+		<p id="name-error"></p>		
+		<form id="set-username">
+			<input size="35" id="username"></input>
+			<input type="submit"></input>
+		</form>
+	</div>
+	<div id="contentWrap">
+		<div id="chatWrap">
+			<div id="chat"></div>
+			<form id="send-message">
+				<input size="35" id="message"></input>
+				<input type="submit" id="send"></input>
+				<input type="file" id="open-file"></input>
+			</form>
+		</div>
+		<div id="users"></div>
+	
+
+
+
+	<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		jQuery(function($){
+			var socket = io.connect();
+			var $userForm = $('#set-username');
+			var $userError = $('#name-error');
+			var $userBox = $('#username');
+			var $users = $('#users');
+			var $messageForm = $('#send-message');
+			var $messageBox = $('#message');
+			var $chat = $('#chat');
+			var $file = $('#open-file');
+
+
+
+			$userForm.submit(function(e){
+				e.preventDefault();
+				socket.emit('new-user', $userBox.val(), function(data){
+					if(data){
+						$('#username-area').hide();
+						$('#contentWrap').show();
+					} else{
+						$userError.html('That username is already taken!  Try again.');
+					}
+				});
+				$userBox.val('');
+			});
+			
+			socket.on('usernames', function(data){
+				var html = '';
+				for(i=0; i < data.length; i++){
+					html += data[i] + '<br/>'
+				}
+				$users.html(html);
+			});
+
+
+			$messageForm.submit(function(e){
+				e.preventDefault();
+				socket.emit('send-text', $messageBox.val());
+				$messageBox.val('');
+			});
+			socket.on('new-message', function(data){
+				$chat.append('<b>' + data.user + ': </b>' + data.msg + "<br/>");
+			});
+		});
+	</script>
+</body>
+
+</html>
