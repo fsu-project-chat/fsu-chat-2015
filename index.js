@@ -2,9 +2,9 @@ var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
-    
+    port = Number(process.env.PORT || 3000)
     usernames = [];
-server.listen(3000);
+server.listen(port);
 
 
 
@@ -41,6 +41,8 @@ io.sockets.on('connection', function(socket){
 		usernames.splice(usernames.indexOf(socket.username), 1);
 		io.sockets.emit('new-user', usernames);
 	});
+	
+	
 });
 
 
