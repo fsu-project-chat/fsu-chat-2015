@@ -14,7 +14,16 @@
 			border: 1px #000 solid;
 		}
 		#username-area{
-			border: 2px solid black;
+			border: 2px black solid;
+		}
+		#paragraph{
+			color: red;		
+		}
+		#users{
+			width: 100px;
+			height: 500px;
+			display: inline-block;
+			border: 1px black solid;
 		}
 	</style>
 </head>
@@ -37,8 +46,13 @@
 				<input type="file" id="open-file"></input>
 			</form>
 		</div>
-		<div id="users"></div>
-	
+		
+	</div>
+	<div id="users"><h3>Users Online</h3></div>
+	<div id="paragraph">
+		<p>Hello, world!</p>
+			
+	</div>
 
 
 
@@ -55,7 +69,7 @@
 			var $messageBox = $('#message');
 			var $chat = $('#chat');
 			var $file = $('#open-file');
-
+			var $para = $('#paragraph');
 
 
 			$userForm.submit(function(e){
@@ -78,8 +92,22 @@
 				}
 				$users.html(html);
 			});
-
-
+			
+			socket.on('log-message',function(data){
+				$('#paragraph').remove();
+				
+					
+				var msg = '';
+				
+				for(i=0;i<data.length; i++){
+				
+					msg = data[i].toString();
+					$chat.append('<b>' + msg + '</b>' + "<br/>");
+					msg = '';				
+				} 
+				
+			});
+			
 			$messageForm.submit(function(e){
 				e.preventDefault();
 				socket.emit('send-text', $messageBox.val());
