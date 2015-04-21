@@ -5,6 +5,7 @@
 	<style>
 		#chat{
 			height:500px;
+			overflow: scroll;
 		}
 		#contentWrap{
 			display: none;
@@ -16,9 +17,7 @@
 		#username-area{
 			border: 2px black solid;
 		}
-		#paragraph{
-			color: red;		
-		}
+	
 		#users{
 			width: 100px;
 			height: 500px;
@@ -46,18 +45,16 @@
 				<input type="file" id="open-file"></input>
 			</form>
 		</div>
-		
+		<div id="users"><h3>Users Online</h3></div>
 	</div>
-	<div id="users"><h3>Users Online</h3></div>
-	<div id="paragraph">
-		<p>Hello, world!</p>
-			
-	</div>
+	
 
 
-
+	<script type="text/javascript"></script>
 	<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="//www.WebRTC-Experiment.com/RecordRTC.js"></script>
+	
 	<script>
 		jQuery(function($){
 			var socket = io.connect();
@@ -70,8 +67,13 @@
 			var $chat = $('#chat');
 			var $file = $('#open-file');
 			var $para = $('#paragraph');
-
-
+			/*
+			var session = {
+  				audio: true,
+  				video: false
+			};
+			var recordRTC = null;
+			*/
 			$userForm.submit(function(e){
 				e.preventDefault();
 				socket.emit('new-user', $userBox.val(), function(data){
@@ -85,12 +87,13 @@
 				$userBox.val('');
 			});
 			
+
 			socket.on('usernames', function(data){
 				var html = '';
 				for(i=0; i < data.length; i++){
 					html += data[i] + '<br/>'
 				}
-				$users.html(html);
+				$users.append(html);
 			});
 			
 			socket.on('log-message',function(data){
