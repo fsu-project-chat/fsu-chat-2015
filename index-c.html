@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat with socket.io</title>
+	<style>
+		/*body{
+        		overflow:scroll;
+			text-align: left;
+			margin: 0px ;
+			padding: 0px;
+			border:0;
+		}*/
+
+		/* Navigation Bar Styling */	
+		#menu{
+      	background-color: none;
+     		width:100%;
+    		height:66px;
+     		box-shadow: 0px 1px 10px #5E5E5E;
+     		position:fixed;
+     		top:0px;
+  		}
+		ul {
+    		list-style-type: none;
+   		margin: 0;
+   		padding: 0;
+    		overflow: hidden;
+			width: 100%;
+			border-style: solid;
+			border-width: medium;
+			background-color: blue;
+		}
+
+		li {
+			display: inline;
+			padding: 15px;
+    		float: left;
+		}
+
+		a {
+    		display: block;
+    		width: 100%;
+    		background-color: black;
+		}
+		a:link, a:visited {
+    		display: block;
+    		width: 100%;
+			font-size: 1.2em;
+			font-family: century gothic;
+    		font-weight: bold;
+			text-transform: uppercase;
+			text-shadow: 0 0 0.3em #464646;
+    		color: black;
+			opacity: 0.26;
+    		background-color: blue;
+			background-repeat: repeat;
+    		text-align: center;
+    		padding: 4px;
+    		text-decoration: none;
+    		text-transform: uppercase;
+				
+		}
+		a:hover, a:active {
+    		background-color: #7A991A;
+			opacity: 0.36;
+		}	
+		#contentWrap{
+			float:left;
+			display: inline-block;
+			background-color: #2E64FE;
+		}
+		#chatWrap{
+			float: left;
+			border: 1px #000 solid;
+			background-color: #2E64FE;
+			
+		}
+		#chat{
+			height:500px;
+			width: 700px;
+			border: 1px black solid;
+			margin: 0 0 0 0;
+			padding: 0 0 0 0;
+			overflow: scroll;
+			/*background-color: #A4A4A4;*/	
+			background-color: white;		
+			font-size: 200%;
+			color: #2E64FE;			
+		}
+		#chat_body{
+			background:white;
+			height:400px;
+			padding:5px 0px;
+		}
+		chat img{ 
+			position: absolute;
+			opacity: 0.4;
+		}
+
+		#chat_head,.msg_head{
+			background:#f39c12;
+			color:white;
+			padding:15px;
+			font-weight:bold;
+			cursor:pointer;
+			border-radius:5px 5px 0px 0px;
+		}
+
+		#username-area{
+			border: 2px black solid;
+		}
+		#users{
+			width: 175px;
+			height: 540px;
+			display: inline-block;
+			border: 1px black solid;
+			background-color: #2E64FE;
+			color: white;
+		}
+	</style>
+</head>
+
+<body>
+	<body bgcolor="#E0E0E0">
+	<div id="menu">
+		<ul id='navigation'>
+			<li><a href="#help"> Help </a></li>
+			<li><a href="#developers"> Developers </a></li>
+			<li><a href="#about"> About </a></li>
+		</ul>
+	</div>
+	<div id="header"><H1>Chat</H1></div>
+	<div class="context">
+	<div id="username-area">
+		<p>Enter a username: </p>
+		<p id="name-error"></p>		
+		<form id="set-username">
+			<input size="35" id="username"></input>
+			<input type="submit"></input>
+		</form>
+	</div>
+	<div class="container">
+	<div id="contentWrap">
+		<div id="chatWrap">
+			<div class="chat_head"> Chat Box</div>	
+			<div class="chat_body">
+			<div id="chat"> <center><div style="background-image: url(http://2.bp.blogspot.com/-16_J1_nDOI0/VM5C85i57lI/AAAAAAABCgE/nmxN_oeTndg/s1600/fsu%2Bbroncos%2Blogo%2B5.gif); height: 400px; width: 400px;"></center></div></div>			
+			<form id="send-message">
+				<input size="35" id="message"></input>
+				<input type="submit" id="send"></input>
+				<input type="file" id="open-file"></input>
+			</form>
+			</div>
+		</div>
+		
+	</div>
+	<div id="users"><h2>Users Online</h2></div>
+	</div>
+	</div>
+	<div class="footer"></div>
+	
+	
+	<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		jQuery(function($){
+			var socket = io.connect();
+			var $userForm = $('#set-username');
+			var $userError = $('#name-error');
+			var $userBox = $('#username');
+			var $users = $('#users');
+			var $messageForm = $('#send-message');
+			var $messageBox = $('#message');
+			var $chat = $('#chat');
+			var $file = $('#open-file');
+			
+
+
+			$userForm.submit(function(e){
+				e.preventDefault();
+				socket.emit('new-user', $userBox.val(), function(data){
+					if(data){
+						$('#username-area').hide();
+						$('#contentWrap').show();
+					} else{
+						$userError.html('That username is already taken!  Try again.');
+					}
+				});
+				$userBox.val('');
+			});
+			
+			socket.on('usernames', function(data){
+				var html = '';
+				for(i=0; i < data.length; i++){
+					html += data[i] + '<br/>'
+				}
+				
+				$users.html(html);
+			});
+			
+			socket.on('log-message',function(data){
+				var msg = '';
+				
+				for(i=0;i<data.length; i++){
+				
+					msg = data[i].toString();
+					$chat.append('<b>' + msg + '</b>' + "<br/>");
+					msg = '';				
+				} 
+				
+			});
+			
+			$messageForm.submit(function(e){
+				e.preventDefault();
+				socket.emit('send-text', $messageBox.val());
+				$messageBox.val('');
+			});
+			socket.on('new-message', function(data){
+				$chat.append('<b>' + data.user + ': </b>' + data.msg + "<br/>");
+			});
+		});
+	</script>
+</body>
+
+</html>
